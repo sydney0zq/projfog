@@ -1,0 +1,7 @@
+*.tar
+*.swp
+*.pyc
+train/*
+valid/*
+test/*
+*.log
