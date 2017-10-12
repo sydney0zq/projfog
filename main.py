@@ -39,12 +39,11 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 use_gpu = torch.cuda.is_available()
 
-
 def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
     since = time.time()
     best_model_wts = model.state_dict()
     best_acc = 0.0
-    best_loss = 0.0
+    best_loss = float('inf')
 
     for epoch in range(n_epochs):
         print (" | Epoch {}/{}".format(epoch, n_epochs-1))
@@ -91,14 +90,14 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
             print (' | {} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
             # Deep copy of the model
-            if phase == 'valid' and epoch_acc >= best_acc and best_loss >=epoch_loss:
+            if phase == 'valid' and epoch_acc >= best_acc and best_loss >= epoch_loss:
                 best_acc = epoch_acc
                 best_model_wts = model.state_dict()
                 torch.save(best_model_wts, "./model_best.pth.tar")
                 print (" | Epoch {} state saved, now acc reaches {}...".format(epoch, best_acc))
+        print (" | Time consuming: {:.2f}s".format(int(time.time()-since)))
         print (" | ")
 
-# Finetuning the convnet
 model_ft = models.resnet18(pretrained=True)
 num_ftrs = model_ft.fc.in_features
 model_ft.fc = nn.Linear(num_ftrs, 2)

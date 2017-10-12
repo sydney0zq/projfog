@@ -40,14 +40,12 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 use_gpu = torch.cuda.is_available()
 print (" | CUDA available is {}".format(use_gpu))
-import gc
-gc.disable()
 
 def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
     since = time.time()
     best_model_wts = model.state_dict()
     best_acc = 0.0
-    best_loss = 0.0
+    best_loss = float('inf')
 
     for epoch in range(n_epochs):
         print (" | Epoch {}/{}".format(epoch, n_epochs-1))
@@ -95,18 +93,16 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
             print (' | {} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
             # Deep copy of the model
-            if phase == 'valid' and epoch_acc >= best_acc and best_loss >=epoch_loss:
+            if phase == 'valid' and epoch_acc >= best_acc and best_loss >= epoch_loss:
                 best_loss = epoch_loss
                 best_acc = epoch_acc
                 best_model_wts = model.state_dict()
                 torch.save(best_model_wts, "./model_avgpool_best.pth.tar")
                 print (" | Epoch {} state saved, now acc reaches {}...".format(epoch, best_acc))
-        print (" | Time consuming: {}s".format(time.time()-since))
+        print (" | Time consuming: {:.2f}s".format(time.time()-since))
         print (" | ")
 
 model = models.resnet18(pretrained=True)
-
-#new_model = nn.Sequential(*list(model.children())[:-2])
 
 class novelmodel(nn.Module):
     def __init__(self):
@@ -126,9 +122,7 @@ class novelmodel(nn.Module):
         x = x[:, :, 0, 0]
         return x
 
-new_model = novelmodel()
-
-model = new_model
+model = novelmodel()
 
 if use_gpu:
     model = model.cuda()
