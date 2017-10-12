@@ -21,7 +21,7 @@ import time
 import os
 from PIL import Image, ImageFile
 
-MODEL_NAME="./fixmodel_best.pth.tar"
+MODEL_NAME="./model_best.pth.tar"
 #MODEL_NAME="./fixmodel_best.pth.tar"
 
 if os.path.exists(MODEL_NAME):
@@ -64,16 +64,18 @@ def eval(model, criterion):
         outputs = model(inputs)
         _, preds = torch.max(outputs.data, 1)
         loss = criterion(outputs, labels)
-        print (" | Loss: ", loss.data[0])
+        #print (" | Loss: ", loss.data[0])
 
         running_loss += loss.data[0]
         running_corrects += torch.sum(preds == labels.data)
 
     final_loss = running_loss / dataset_sizes["test"]
     final_acc = running_corrects / dataset_sizes["test"]
-    print (" | Final loss: {}, Final accuracy: {}".format(final_loss, final_acc))
+    #print (" | Final loss: {}, Final accuracy: {}".format(final_loss, final_acc))
+    print (" | Accuracy: {}".format(final_acc))
     print (" | Consume time {}s".format(time.time() - since))
-    print (" | Done!")
+    return final_acc
+
 
 
 model = models.resnet18(pretrained=False)
@@ -84,5 +86,15 @@ model.load_state_dict(model_weights)
 if use_gpu:
     model = model.cuda()
 
-eval(model, nn.CrossEntropyLoss())
+acc = 0
+evaltimes = 10
+for i in range(evaltimes):
+    acc += eval(model, nn.CrossEntropyLoss())
+print (" | Final accuracy: {}%".format(acc/evaltimes*100))
+
+
+
+
+
+
 
