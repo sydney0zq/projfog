@@ -21,8 +21,7 @@ import time
 import os
 from PIL import Image, ImageFile
 
-#MODEL_NAME="./model_best.pth.tar"
-#MODEL_NAME="./fixmodel_best.pth.tar"
+MODEL_NAME="./model_avgpool_best.pth.tar"
 
 if os.path.exists(MODEL_NAME):
     model_weights = torch.load(MODEL_NAME)
@@ -76,9 +75,28 @@ def eval(model, criterion):
     print (" | Done!")
 
 
-model = models.resnet18(pretrained=False)
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 2)
+model = models.resnet18(pretrained=True)
+
+class novelmodel(nn.Module):
+    def __init__(self):
+        super(novelmodel, self).__init__()
+        self.features = nn.Sequential(
+            *list(model.children())[:-2]
+        )
+        self.conv1 = torch.nn.Conv2d(512, 2, kernel_size=(1, 1), stride=2)
+        self.avgpool = torch.nn.AvgPool2d(4)
+    def forward(self, x):
+        #print ("Feature size: {}".format(x.size()))
+        x = self.features(x)
+        x = self.conv1(x)
+        #print ("Conv1 size: {}".format(x.size()))
+        x = self.avgpool(x)
+        #x = F.max_pool2d(x, kernel_size=x.size()[2:])
+        x = x[:, :, 0, 0]
+        return x
+
+model = novelmodel()
+
 
 model.load_state_dict(model_weights)
 if use_gpu:

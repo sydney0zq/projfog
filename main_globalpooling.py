@@ -76,7 +76,7 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
                 outputs = model(inputs)
                 _, preds = torch.max(outputs.data, 1)
                 loss = criterion(outputs, labels)
-                print (" | Loss: ", loss.data[0])
+                #print (" | Loss: ", loss.data[0])
 
                 # Backward + optimize only if in training phase
                 if phase == 'train':
@@ -97,6 +97,7 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
                 best_model_wts = model.state_dict()
                 torch.save(best_model_wts, "./model_avgpool_best.pth.tar")
                 print (" | Epoch {} state saved, now acc reaches {}...".format(epoch, best_acc))
+        print (" | Time consuming: {}s".format(time.time()-since))
         print (" | ")
 
 model = models.resnet18(pretrained=True)
@@ -109,8 +110,8 @@ class novelmodel(nn.Module):
         self.features = nn.Sequential(
             *list(model.children())[:-2]
         )
-        self.conv1 = torch.nn.Conv2d(512, 2, kernel_size=(3, 3), stride=1, padding=1)
-        self.avgpool = torch.nn.AvgPool2d(7)
+        self.conv1 = torch.nn.Conv2d(512, 2, kernel_size=(1, 1), stride=2)
+        self.avgpool = torch.nn.AvgPool2d(4)
     def forward(self, x):
         #print ("Feature size: {}".format(x.size()))
         x = self.features(x)
