@@ -38,7 +38,6 @@ dataset_sizes = {x: len(im_datasets[x]) for x in ['train', 'valid']}
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 use_gpu = torch.cuda.is_available()
-use_gpu = False
 
 def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
     since = time.time()
@@ -75,7 +74,10 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
                 outputs = model(inputs)
                 _, preds = torch.max(outputs.data, 1)
                 loss = criterion(outputs, labels)
+<<<<<<< HEAD:main.py
                 #print (" | Loss: ", loss.data[0])
+=======
+>>>>>>> s2333:trash/main_fix.py
 
                 # Backward + optimize only if in training phase
                 if phase == 'train':
@@ -94,13 +96,16 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
             if phase == 'valid' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = model.state_dict()
-                torch.save(best_model_wts, "./model_best.pth.tar")
+                torch.save(best_model_wts, "./fixmodel_best.pth.tar")
                 print (" | Epoch {} state saved, now acc reaches {}...".format(epoch, best_acc))
         print (" | Time consuming: {}s".format(time.time()-since))
         print (" | ")
 
 # Finetuning the convnet
 model_ft = models.resnet18(pretrained=True)
+# Fix feature exactor
+for param in model_ft.parameters():
+    param.require_grad = False
 num_ftrs = model_ft.fc.in_features
 model_ft.fc = nn.Linear(num_ftrs, 2)
 
@@ -111,39 +116,8 @@ criterion = nn.CrossEntropyLoss()
 # Observe that all parameters are being optimized
 optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 # Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.1)
 
-model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, n_epochs=25)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, n_epochs=50)
 
 

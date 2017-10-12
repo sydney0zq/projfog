@@ -21,8 +21,7 @@ import time
 import os
 from PIL import Image, ImageFile
 
-MODEL_NAME="./model_best.pth.tar"
-#MODEL_NAME="./fixmodel_best.pth.tar"
+MODEL_NAME="./model_avgpool_best.pth.tar"
 
 if os.path.exists(MODEL_NAME):
     model_weights = torch.load(MODEL_NAME)
@@ -64,7 +63,7 @@ def eval(model, criterion):
         outputs = model(inputs)
         _, preds = torch.max(outputs.data, 1)
         loss = criterion(outputs, labels)
-        #print (" | Loss: ", loss.data[0])
+#        print (" | Loss: ", loss.data[0])
 
         running_loss += loss.data[0]
         running_corrects += torch.sum(preds == labels.data)
@@ -73,14 +72,32 @@ def eval(model, criterion):
     final_acc = running_corrects / dataset_sizes["test"]
     #print (" | Final loss: {}, Final accuracy: {}".format(final_loss, final_acc))
     print (" | Accuracy: {}".format(final_acc))
-    print (" | Consume time {}s".format(time.time() - since))
+    print (" |      Consume time {}s".format(time.time() - since))
     return final_acc
 
 
+model = models.resnet18(pretrained=True)
 
-model = models.resnet18(pretrained=False)
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 2)
+class novelmodel(nn.Module):
+    def __init__(self):
+        super(novelmodel, self).__init__()
+        self.features = nn.Sequential(
+            *list(model.children())[:-2]
+        )
+        self.conv1 = torch.nn.Conv2d(512, 2, kernel_size=(1, 1), stride=2)
+        self.avgpool = torch.nn.AvgPool2d(4)
+    def forward(self, x):
+        #print ("Feature size: {}".format(x.size()))
+        x = self.features(x)
+        x = self.conv1(x)
+        #print ("Conv1 size: {}".format(x.size()))
+        x = self.avgpool(x)
+        #x = F.max_pool2d(x, kernel_size=x.size()[2:])
+        x = x[:, :, 0, 0]
+        return x
+
+model = novelmodel()
+
 
 model.load_state_dict(model_weights)
 if use_gpu:
@@ -91,10 +108,4 @@ evaltimes = 10
 for i in range(evaltimes):
     acc += eval(model, nn.CrossEntropyLoss())
 print (" | Final accuracy: {}%".format(acc/evaltimes*100))
-
-
-
-
-
-
 
