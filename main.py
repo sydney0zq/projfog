@@ -75,7 +75,7 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
                 outputs = model(inputs)
                 _, preds = torch.max(outputs.data, 1)
                 loss = criterion(outputs, labels)
-                print (" | Loss: ", loss.data[0])
+                #print (" | Loss: ", loss.data[0])
 
                 # Backward + optimize only if in training phase
                 if phase == 'train':
@@ -96,6 +96,7 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
                 best_model_wts = model.state_dict()
                 torch.save(best_model_wts, "./model_best.pth.tar")
                 print (" | Epoch {} state saved, now acc reaches {}...".format(epoch, best_acc))
+        print (" | Time consuming: {}s".format(time.time()-since))
         print (" | ")
 
 # Finetuning the convnet
