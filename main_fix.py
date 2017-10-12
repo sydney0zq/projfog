@@ -92,7 +92,7 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs=25):
             # Deep copy of the model
             if phase == 'valid' and epoch_acc > best_acc:
                 best_acc = epoch_acc
-                best_model_wts = model.state_dic()
+                best_model_wts = model.state_dict()
                 torch.save(best_model_wts, "./fixmodel_best.pth.tar")
                 print (" | Epoch {} state saved, now acc reaches {}...".format(epoch, best_acc))
         print (" | ")
