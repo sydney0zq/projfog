@@ -5,3 +5,4 @@ train/*
 valid/*
 test/*
 *.log
+model_repo/

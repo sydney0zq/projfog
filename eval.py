@@ -22,6 +22,7 @@ import os
 from PIL import Image, ImageFile
 
 MODEL_NAME="./model_best.pth.tar"
+#MODEL_NAME="./fixmodel_best.pth.tar"
 
 if os.path.exists(MODEL_NAME):
     model_weights = torch.load(MODEL_NAME)
