@@ -19,11 +19,9 @@ README.txt
 
     NOTE: These scipt are all in `utils` folder, you may need to copy them to PROJECT ROOT directory
 
-3. Run `python3 `
+3. Run `python3 resnet18_avg.py` to get our classifier
 
-4. Run `python3 resnet18_avg.py` to get our classifier
-
-5. Run `python3 eval_resnet18_avg.py` to check the accuracy of our classifier
+4. Run `python3 eval_resnet18_avg.py` to check the accuracy of our classifier
 
 
 NOTE: This model is affined to ResNet18, which is an amazing model in Computer Vision area.
