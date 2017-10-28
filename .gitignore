@@ -6,3 +6,4 @@ valid/*
 test/*
 *.log
 model_repo/*
+temp

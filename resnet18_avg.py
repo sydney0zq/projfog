@@ -130,9 +130,8 @@ if use_gpu:
 criterion = nn.CrossEntropyLoss()
 # Observe that all parameters are being optimized
 optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-# Decay LR by a factor of 0.1 every 7 epochs
+# Decay LR by a factor of 0.1 every 20 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=20, gamma=0.1)
-
 model = train_model(model, criterion, optimizer_ft, exp_lr_scheduler, n_epochs=50)
 
 

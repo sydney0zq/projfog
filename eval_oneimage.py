@@ -22,59 +22,46 @@ import os
 from PIL import Image, ImageFile
 
 MODEL_NAME="./model_avgpool_best.pth.tar"
+IM_DIR="./temp"
+
 
 if os.path.exists(MODEL_NAME):
     model_weights = torch.load(MODEL_NAME)
 else:
     raise IOError
 
-data_transform = {
-    "test": transforms.Compose([
+data_transform = transforms.Compose([
         transforms.Scale(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),        
-}
+    ])
 
 data_dir = '.'
-im_dataset = {"test": datasets.ImageFolder(os.path.join(data_dir, "test"), data_transform["test"])}
-dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=8, shuffle=True, num_workers=4)}
-
-dataset_sizes = {"test": len(im_dataset["test"])}
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 use_gpu = torch.cuda.is_available()
 use_gpu = False
 
-def eval(model, criterion):
+def eval(im_path, model):
+    model.eval()
     since = time.time()
-    running_loss = 0.0
-    running_corrects = 0.0
 
-    for data in dataloader["test"]:
-        inputs, labels = data
-        if use_gpu:
-            inputs = Variable(inputs.cuda())
-            labels = Variable(labels.cuda())
-        else:
-            inputs, labels = Variable(inputs), Variable(labels)
-        outputs = model(inputs)
-        _, preds = torch.max(outputs.data, 1)
-        loss = criterion(outputs, labels)
-#        print (" | Loss: ", loss.data[0])
+    inputs = data_transform(Image.open(im_path))
+    inputs = inputs.unsqueeze(0)
+    # Fog: 0
+    # NotFog: 1
 
-        running_loss += loss.data[0]
-        running_corrects += torch.sum(preds == labels.data)
+    if use_gpu:
+        inputs = Variable(inputs.cuda())
+    else:
+        inputs = Variable(inputs)
+    outputs = model(inputs)
+    _, preds = torch.max(outputs, 1)
 
-    final_loss = running_loss / dataset_sizes["test"]
-    final_acc = running_corrects / dataset_sizes["test"]
-    #print (" | Final loss: {}, Final accuracy: {}".format(final_loss, final_acc))
-    print (" | Accuracy: {}".format(final_acc))
-    print (" |      Consume time {}s".format(time.time() - since))
-    return final_acc
-
+    #print (" |      Consume time {}s".format(time.time() - since))
+    return preds.data[0]
 
 model = models.resnet18(pretrained=True)
 
@@ -103,9 +90,11 @@ model.load_state_dict(model_weights)
 if use_gpu:
     model = model.cuda()
 
-acc = 0
-evaltimes = 10
-for i in range(evaltimes):
-    acc += eval(model, nn.CrossEntropyLoss())
-print (" | Final accuracy: {}%".format(acc/evaltimes*100))
+for im_name in os.listdir(IM_DIR):
+    if im_name.endswith("jpg") or im_name.endswith("jpeg") or im_name.endswith("png"):
+        pred = eval(os.path.join(IM_DIR, im_name), model)
+        if pred == 0:
+            print (" | {} is foggy.".format(im_name))
+        else:
+            print (" | {} is not foggy.".format(im_name))
 

@@ -38,23 +38,26 @@ data_transform = {
 }
 
 data_dir = '.'
-im_dataset = {"test": datasets.ImageFolder(os.path.join(data_dir, "test"), data_transform["test"])}
-dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=8, shuffle=True, num_workers=4)}
+dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=1, shuffle=False, num_workers=1)}
 
 dataset_sizes = {"test": len(im_dataset["test"])}
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 use_gpu = torch.cuda.is_available()
-use_gpu = False
+#use_gpu = False
 
-def eval(model, criterion):
+def eval(im_path, model, criterion):
     since = time.time()
     running_loss = 0.0
     running_corrects = 0.0
+    diff = []
 
-    for data in dataloader["test"]:
-        inputs, labels = data
+    im = Image.open(im_path)
+    label = torch.Tensor((0, 1))
+
+    for ii, data in enumerate(dataloader["test"]):
+        (inputs, labels) = data
         if use_gpu:
             inputs = Variable(inputs.cuda())
             labels = Variable(labels.cuda())
@@ -64,9 +67,18 @@ def eval(model, criterion):
         _, preds = torch.max(outputs.data, 1)
         loss = criterion(outputs, labels)
 #        print (" | Loss: ", loss.data[0])
+        #labels_ = labels.type(torch.cuda.LongTensor)
 
         running_loss += loss.data[0]
         running_corrects += torch.sum(preds == labels.data)
+
+        diff = np.array(preds) - np.array(labels.data)
+        print (diff)
+        for i in range(len(diff)):
+            if i != 0:
+                im = np.array(inputs[i].data) * 255
+                im = im.astype(np.int8)
+                Image.fromarray(im).save(str(ii) + str(i) + ".jpg")
 
     final_loss = running_loss / dataset_sizes["test"]
     final_acc = running_corrects / dataset_sizes["test"]
