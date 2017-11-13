@@ -39,7 +39,7 @@ data_transform = {
 
 data_dir = '.'
 im_dataset = {"test": datasets.ImageFolder(os.path.join(data_dir, "test"), data_transform["test"])}
-dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=8, shuffle=True, num_workers=4)}
+dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=1, shuffle=False, num_workers=4)}
 
 dataset_sizes = {"test": len(im_dataset["test"])}
 

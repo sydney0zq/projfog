@@ -22,7 +22,8 @@ import os
 from PIL import Image, ImageFile
 
 MODEL_NAME="./model_avgpool_best.pth.tar"
-IM_DIR="./temp"
+IM_DIR="./test/fog"
+#IM_DIR="./test/notfog"
 
 
 if os.path.exists(MODEL_NAME):

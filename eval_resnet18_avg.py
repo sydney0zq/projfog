@@ -38,7 +38,8 @@ data_transform = {
 }
 
 data_dir = '.'
-dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=1, shuffle=False, num_workers=1)}
+im_dataset = {"test": datasets.ImageFolder(os.path.join(data_dir, "test"), data_transform["test"])}
+dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=4, shuffle=True, num_workers=4)}
 
 dataset_sizes = {"test": len(im_dataset["test"])}
 
@@ -47,14 +48,9 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 use_gpu = torch.cuda.is_available()
 #use_gpu = False
 
-def eval(im_path, model, criterion):
+def eval(model):
     since = time.time()
-    running_loss = 0.0
-    running_corrects = 0.0
-    diff = []
-
-    im = Image.open(im_path)
-    label = torch.Tensor((0, 1))
+    running_corrects = 0
 
     for ii, data in enumerate(dataloader["test"]):
         (inputs, labels) = data
@@ -65,28 +61,11 @@ def eval(im_path, model, criterion):
             inputs, labels = Variable(inputs), Variable(labels)
         outputs = model(inputs)
         _, preds = torch.max(outputs.data, 1)
-        loss = criterion(outputs, labels)
-#        print (" | Loss: ", loss.data[0])
-        #labels_ = labels.type(torch.cuda.LongTensor)
-
-        running_loss += loss.data[0]
         running_corrects += torch.sum(preds == labels.data)
 
-        diff = np.array(preds) - np.array(labels.data)
-        print (diff)
-        for i in range(len(diff)):
-            if i != 0:
-                im = np.array(inputs[i].data) * 255
-                im = im.astype(np.int8)
-                Image.fromarray(im).save(str(ii) + str(i) + ".jpg")
-
-    final_loss = running_loss / dataset_sizes["test"]
-    final_acc = running_corrects / dataset_sizes["test"]
-    #print (" | Final loss: {}, Final accuracy: {}".format(final_loss, final_acc))
+    final_acc = running_corrects / ((ii+1)*4)
     print (" | Accuracy: {}".format(final_acc))
     print (" |      Consume time {}s".format(time.time() - since))
-    return final_acc
-
 
 model = models.resnet18(pretrained=True)
 
@@ -110,14 +89,9 @@ class novelmodel(nn.Module):
 
 model = novelmodel()
 
-
 model.load_state_dict(model_weights)
 if use_gpu:
     model = model.cuda()
 
-acc = 0
-evaltimes = 10
-for i in range(evaltimes):
-    acc += eval(model, nn.CrossEntropyLoss())
-print (" | Final accuracy: {}%".format(acc/evaltimes*100))
+acc = eval(model)
 
