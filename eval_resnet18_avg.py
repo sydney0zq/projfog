@@ -39,7 +39,7 @@ data_transform = {
 
 data_dir = '.'
 im_dataset = {"test": datasets.ImageFolder(os.path.join(data_dir, "test"), data_transform["test"])}
-dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=4, shuffle=True, num_workers=4)}
+dataloader = {"test": torch.utils.data.DataLoader(im_dataset["test"], batch_size=8, shuffle=False, num_workers=8)}
 
 dataset_sizes = {"test": len(im_dataset["test"])}
 
@@ -75,7 +75,7 @@ class novelmodel(nn.Module):
         self.features = nn.Sequential(
             *list(model.children())[:-2]
         )
-        self.conv1 = torch.nn.Conv2d(512, 2, kernel_size=(1, 1), stride=2)
+        self.conv1 = torch.nn.Conv2d(512, 3, kernel_size=(1, 1), stride=2)
         self.avgpool = torch.nn.AvgPool2d(4)
     def forward(self, x):
         #print ("Feature size: {}".format(x.size()))

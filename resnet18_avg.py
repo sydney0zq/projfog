@@ -31,7 +31,7 @@ data_transforms = {
 data_dir = "./"
 im_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
                 for x in ['train', 'valid']}
-dataloaders = {x: torch.utils.data.DataLoader(im_datasets[x], batch_size=8, shuffle=True, num_workers=4)
+dataloaders = {x: torch.utils.data.DataLoader(im_datasets[x], batch_size=32, shuffle=True, num_workers=16)
                 for x in ['train', 'valid']}
 
 dataset_sizes = {x: len(im_datasets[x]) for x in ['train', 'valid']}
@@ -110,7 +110,8 @@ class novelmodel(nn.Module):
         self.features = nn.Sequential(
             *list(model.children())[:-2]
         )
-        self.conv1 = torch.nn.Conv2d(512, 2, kernel_size=(1, 1), stride=2)
+        # 3 class, then 3 channels
+        self.conv1 = torch.nn.Conv2d(512, 3, kernel_size=(1, 1), stride=2)  
         self.avgpool = torch.nn.AvgPool2d(4)
     def forward(self, x):
         #print ("Feature size: {}".format(x.size()))
@@ -130,8 +131,9 @@ if use_gpu:
 criterion = nn.CrossEntropyLoss()
 # Observe that all parameters are being optimized
 optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-# Decay LR by a factor of 0.1 every 20 epochs
+# Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=20, gamma=0.1)
-model = train_model(model, criterion, optimizer_ft, exp_lr_scheduler, n_epochs=50)
+
+model = train_model(model, criterion, optimizer_ft, exp_lr_scheduler, n_epochs=70)
 
 
